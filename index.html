@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Player</title>
+    <!-- <link rel="stylesheet" href="./styles/style.css" /> -->
+
+    <meta property="og:title" content="Заголовок страницы в OG" />
+    <meta property="og:description" content="Описание страницы в OG" />
+    <meta property="og:image" content="https://example.com/image.jpg" />
+    <meta property="og:url" content="https://example.com/" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body onload="draw();">
+    <header>
+      <h1>Hls.js</h1>
+    </header>
+    <!-- Or if you want the latest version from the main branch -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/hls.js@canary"></script> -->
+    <video onplay="update();" id="video" controls autoplay></video>
+    <canvas id="bufferedCanvas" onclick="onClickBufferedRange(event);"></canvas>
+
+    <div class="metricsContainer">
+      <label class="center">Status:</label>
+      <pre id="statusOut" class="center" style="white-space: pre-wrap"></pre>
+      <label class="center">Errors:</label>
+      <pre id="errorOut" class="center" style="white-space: pre-wrap"></pre>
+      <label class="center">Buffer State:</label>
+      <pre id="bufferState" class="center" style="white-space: pre-wrap"></pre>
+    </div>
+
+    <footer>
+      <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+      <script src="./main.js"></script>
+    </footer>
+  </body>
+</html>
