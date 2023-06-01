@@ -1,10 +1,9 @@
 const videoTimeline = document.querySelector('canvas');
-var video = document.getElementById('video');
-var ctxVideoTimeline = videoTimeline.getContext('2d');
+const video = document.getElementById('video');
+const ctxVideoTimeline = videoTimeline.getContext('2d');
 let startTime = Date.now();
-
+const hls = new Hls();
 let tracks = [];
-let logEvents = '';
 
 // Счетчики проигрывания
 
@@ -12,8 +11,12 @@ let logEvents = '';
 function drawCurrentTime() {
   if (videoTimeline.getContext) {
     let seekableEnd = getSeekableEnd();
+    ctxVideoTimeline.fillStyle = 'gray';
+    let x = (video.currentTime / seekableEnd) * videoTimeline.width;
+    ctxVideoTimeline.fillRect(x - 4, 0, 4, 150);
+
     ctxVideoTimeline.fillStyle = 'blue';
-    const x = (video.currentTime / seekableEnd) * videoTimeline.width;
+    x = (video.currentTime / seekableEnd) * videoTimeline.width;
     ctxVideoTimeline.fillRect(x, 0, 4, 150);
   }
 }
@@ -45,7 +48,7 @@ function clearTimeline() {
 // Перемещение текущей позиции проигрывания
 function onClickBufferedRange(event) {
   clearTimeline();
-  var targetTime =
+  let targetTime =
     ((event.clientX - videoTimeline.offsetLeft) / videoTimeline.width) * getSeekableEnd();
   video.currentTime = targetTime;
   drawCurrentTime();
@@ -55,6 +58,12 @@ resizeTimelineWindow(videoTimeline);
 
 window.addEventListener('resize', (e) => {
   resizeTimelineWindow(videoTimeline);
+});
+
+video.addEventListener('playing', () => {
+  setInterval(() => {
+    drawCurrentTime();
+  }, 1000);
 });
 
 // Метрики
@@ -105,13 +114,13 @@ function getSeekableEnd() {
 
 // Добавление логов для Status
 function appendLog(textElId, message) {
-  var el = document.getElementById(textElId);
-  var logText = el.textContent;
+  let el = document.getElementById(textElId);
+  let logText = el.textContent;
   if (logText.length) {
     logText += '\n';
   }
-  var timestamp = (Date.now() - startTime) / 1000;
-  var newMessage = timestamp + ' | ' + message;
+  let timestamp = (Date.now() - startTime) / 1000;
+  let newMessage = timestamp + ' | ' + message;
   logText += newMessage;
 
   el.textContent = logText;
@@ -121,74 +130,37 @@ function logStatus(message) {
   appendLog('statusOut', message);
 }
 
-function trimEventHistory() {
-  var x = limitMetrics;
-  if (x < 0) {
-    return;
-  }
-  trimArray(events.load, x);
-  trimArray(events.buffer, x);
-  trimArray(events.video, x);
-  trimArray(events.level, x);
-  trimArray(events.bitrate, x);
-}
-
-video.addEventListener('playing', () => {
-  setInterval(() => {
-    clearTimeline();
-    drawBuffer();
-    drawCurrentTime();
-    updateBufferStats();
-  }, 500);
-});
-
-var videoSrc =
+let videoSrc =
   'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8';
 if (Hls.isSupported()) {
-  var hls = new Hls();
-
   hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
     logStatus('manifest loaded, found ' + data.levels.length + ' quality level');
   });
   hls.loadSource(videoSrc);
   hls.attachMedia(video);
-
   hls.on(Hls.Events.ERROR, function (event, data) {
-    let el = document.getElementById('errorOut');
-    el.textContent = data.error.message;
+    const el = document.getElementById('errorOut');
+    el.textContent = data.error.stack;
   });
   hls.on(Hls.Events.BUFFER_CREATED, function (eventName, data) {
     tracks = data.tracks;
     updateBufferStats();
   });
-
   hls.on(Hls.Events.BUFFER_APPENDED, function (eventName, data) {
+    clearTimeline();
+    drawBuffer();
+    drawCurrentTime();
     updateBufferStats();
   });
-
   hls.on(Hls.Events.MANIFEST_LOADED, function (event, data) {
     logStatus(`Loaded ${data.url}`);
   });
-
   hls.on(Hls.Events.MEDIA_ATTACHED, function () {
     logStatus('Media element attached');
-    bufferingIdx = -1;
-    events.video.push({
-      time: self.performance.now() - events.t0,
-      type: 'Media attached',
-    });
-    trimEventHistory();
   });
   hls.on(Hls.Events.MEDIA_DETACHED, function () {
     logStatus('Media element detached');
-    clearInterval(hls.bufferTimer);
-    bufferingIdx = -1;
     tracks = [];
-    events.video.push({
-      time: self.performance.now() - events.t0,
-      type: 'Media detached',
-    });
-    trimEventHistory();
   });
 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
   video.src = videoSrc;

@@ -18,13 +18,13 @@
       rel="stylesheet"
     />
   </head>
-  <body onload="draw();">
+  <body>
     <header>
       <h1>Hls.js</h1>
     </header>
     <!-- Or if you want the latest version from the main branch -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/hls.js@canary"></script> -->
-    <video onplay="update();" id="video" controls autoplay></video>
+    <video id="video" controls></video>
     <canvas id="bufferedCanvas" onclick="onClickBufferedRange(event);"></canvas>
 
     <div class="metricsContainer">
